@@ -100,37 +100,16 @@
                                       <h4>Select Categories</h4>
                                       <div class="checkbox-item">
                                           <form>
-                                              <div class="form-group"> <input type="checkbox" id="bedroom"> <label
-                                                      for="bedroom">Bedroom</label> </div>
-                                              <div class="form-group"> <input type="checkbox" id="decoration"> <label
-                                                      for="decoration">Decoration</label> </div>
-                                              <div class="form-group"> <input type="checkbox" id="kitchen"> <label
-                                                      for="kitchen">Kitchen</label> </div>
-                                              <div class="form-group"> <input type="checkbox" id="clothing"> <label
-                                                      for="clothing">Clothing</label> </div>
-                                              <div class="form-group"> <input type="checkbox" id="office"> <label
-                                                      for="office">Office</label> </div>
-                                              <div class="form-group m-0"> <input type="checkbox" id="lighting"> <label
-                                                      for="lighting">Lighting</label> </div>
+                                              <div v-for="category in filterList.categories" class="form-group"> <input type="checkbox" :id="category.id"> <label
+                                                      :for="category.id">{{ category.title }}</label> </div>
                                           </form>
                                       </div>
                                   </div>
                                   <div class="single-sidebar-box mt-30 wow fadeInUp animated">
                                       <h4>Color Option </h4>
                                       <ul class="color-option">
-                                          <li> <a href="#0" class="color-option-single"> <span> Black</span> </a> </li>
-                                          <li> <a href="#0" class="color-option-single bg2"> <span> Yellow</span> </a>
-                                          </li>
-                                          <li> <a href="#0" class="color-option-single bg3"> <span> Red</span> </a> </li>
-                                          <li> <a href="#0" class="color-option-single bg4"> <span> Blue</span> </a> </li>
-                                          <li> <a href="#0" class="color-option-single bg5"> <span> Green</span> </a>
-                                          </li>
-                                          <li> <a href="#0" class="color-option-single bg6"> <span> Olive</span> </a>
-                                          </li>
-                                          <li> <a href="#0" class="color-option-single bg7"> <span> Lime</span> </a> </li>
-                                          <li> <a href="#0" class="color-option-single bg8"> <span> Pink</span> </a> </li>
-                                          <li> <a href="#0" class="color-option-single bg9"> <span> Cyan</span> </a> </li>
-                                          <li> <a href="#0" class="color-option-single bg10"> <span> Magenta</span> </a>
+                                          <li v-for="color in filterList.colors">
+                                              <a href="#0" class="color-option-single" :style="`background: #${color.title}`"> <span> {{ color.title }} </span> </a>
                                           </li>
                                       </ul>
                                   </div>
@@ -146,20 +125,7 @@
                                   <div class="single-sidebar-box mt-30 wow fadeInUp animated pb-0 border-bottom-0 ">
                                       <h4>Tags </h4>
                                       <ul class="popular-tag">
-                                          <li><a href="#0">Tools</a></li>
-                                          <li><a href="#0">Store</a></li>
-                                          <li><a href="#0">Decoration</a></li>
-                                          <li><a href="#0">Online</a></li>
-                                          <li><a href="#0">Furnitures</a></li>
-                                          <li><a href="#0">Beauty</a></li>
-                                          <li><a href="#0">Fashion</a></li>
-                                          <li><a href="#0">Office</a></li>
-                                          <li><a href="#0">Clothing</a></li>
-                                          <li><a href="#0">Interior</a></li>
-                                          <li><a href="#0">Good</a></li>
-                                          <li><a href="#0">Standard</a></li>
-                                          <li><a href="#0">Chair’s</a></li>
-                                          <li><a href="#0">Living Room</a></li>
+                                          <li v-for="tag in filterList.tags"><a href="#0">{{ tag.title }}</a></li>
                                       </ul>
                                   </div>
                               </div>
@@ -2100,13 +2066,15 @@ export default {
   data() {
     return  {
         products: [],
-        popupProduct: null
+        popupProduct: null,
+        filterList: []
     }
   },
 
   mounted() {
-      $(document).trigger('change');
+      $(document).trigger('init');
       this.getProducts();
+      this.getFilterList();
   },
 
   methods: {
@@ -2117,7 +2085,7 @@ export default {
                 // console.log(res);
             })
             .finally(v => {
-                $(document).trigger('change');
+                $(document).trigger('init');
             });
     },
     getProduct(id) {
@@ -2127,9 +2095,34 @@ export default {
                 console.log(res);
             })
             .finally(v => {
-                $(document).trigger('change');
+                $(document).trigger('init');
             });
-    }
+    },
+      getFilterList() {
+          this.axios.get(`http://localhost:8000/api/products/filters`)
+              .then(res => {
+                  this.filterList = res.data;
+
+                  //  Price Filter
+                  if ($("#price-range").length) {
+                      $("#price-range").slider({
+                          range: true,
+                          min: this.filterList.price.min,
+                          max: this.filterList.price.max,
+                          values: [this.filterList.price.min, this.filterList.price.max],
+                          slide: function (event, ui) {
+                              $("#priceRange").val("$" + ui.values[0] + " - $" + ui.values[1]);
+                          }
+                      });
+                      $("#priceRange").val("$" + $("#price-range").slider("values", 0) + " - $" + $("#price-range").slider("values", 1));
+                  };
+
+                  console.log(res);
+              })
+              .finally(v => {
+                  $(document).trigger('init');
+              });
+      }
   }
 }
 </script>
